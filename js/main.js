@@ -25,6 +25,7 @@ Index.prototype = {
 var mt = new MersenneTwister();
 
 
+// init three.js
 function initThree(){
 	width		= document.getElementById('canvas-frame').clientWidth;
 	height	= document.getElementById('canvas-frame').clientHeight;
@@ -72,6 +73,7 @@ function Arrows(col, row, J){
 	this._div		= 30; //division
 	this._J			= J;  //interaction
 }
+
 Arrows.prototype = {
 	initialize: function(scene){
 		for (var c = 0; c < this._col; ++c){
@@ -115,37 +117,35 @@ Arrows.prototype = {
 		//metropolis
 		if (dE < 0 || mt.next() < Math.exp(-invtemp*dE)){
 			this._theta[this._idx.conv(sel_c, sel_r)] = tempTheta;
-		}
-	},
-	drawArrow: function(){
-		for (var c = 0; c < this._col; ++c){
-			for (var r = 0; r < this._row; ++r){
-				this._arrow[this._idx.conv(c, r)].rotation.set(0, 0, 2*Math.PI*this._theta[this._idx.conv(c, r)]/this._div);
-			}
+			this._arrow[this._idx.conv(sel_c, sel_r)].rotation.set(0, 0, 2*Math.PI*this._theta[this._idx.conv(sel_c, sel_r)]/this._div);
 		}
 	}
 };
 
 var arrows;
 function initObject(){
-	arrows = new Arrows(50, 50, 1.0);
-	//col = 50, row = 50, J = 1.0
+	arrows = new Arrows(30, 30, 1.0);
+	//col = 30, row = 30, J = 1.0
 	arrows.initialize(scene);
+
+	var invtemp = 5;
+	var interval = 10;
+
+	//MCstep
+	var timeoutCallBack = function(){
+		for(var i=0; i<10000; ++i){
+			arrows.MCstep(invtemp);
+		}
+		setTimeout(timeoutCallBack, interval);
+	}
+
+	setTimeout(timeoutCallBack, interval);
 }
 
-var time = 0;
 function loop(){
-	time++;
-
-	for(var i=0; i<10000; ++i){
-		arrows.MCstep(10);
-		//invtemp = 10
-	}
-	arrows.drawArrow();
-
+	window.requestAnimationFrame(loop);
 	renderer.clear();
 	renderer.render(scene, camera);
-	window.requestAnimationFrame(loop);
 }
 
 function threeStart(){
