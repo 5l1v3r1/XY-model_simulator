@@ -4,7 +4,7 @@ var renderer;
 //utils
 // mod
 function mod(i, j) {
-    return (i % j) < 0 ? (i % j) + 0 + (j < 0 ? -j : j) : (i % j + 0);
+	return (i % j) < 0 ? (i % j) + 0 + (j < 0 ? -j : j) : (i % j + 0);
 }
 
 //Index
@@ -20,6 +20,60 @@ Index.prototype = {
 		return this._numW*h+w;
 	}
 };
+
+function hsl2rgb(h, s, l){
+	var max,min;
+	var rgb = {'r':0,'g':0,'b':0};
+
+	if (h == 360){
+		h = 0;
+	}
+
+	if(l <= 49){
+		max = 2.55 * (l + l * (s / 100));
+		min = 2.55 * (l - l * (s / 100));
+	}else{
+		max = 2.55 * (l + (100 - l) * (s / 100));
+		min = 2.55 * (l - (100 - l) * (s / 100)); 
+	}  
+
+	if (h < 60){
+		rgb.r = max;
+		rgb.g = min + (max - min) * (h / 60) ;
+		rgb.b = min;
+	}else if (h >= 60 &&  h < 120){
+		rgb.r = min + (max - min) * ((120 - h) / 60);
+		rgb.g = max ;
+		rgb.b = min;    
+	}else if (h >= 120 &&  h < 180){
+		rgb.r = min;
+		rgb.g = max ;
+		rgb.b = min + (max - min) * ((h - 120) / 60);        
+	}else if (h >= 180 &&  h < 240){
+		rgb.r = min;
+		rgb.g = min + (max - min) * ((240 - h) / 60);
+		rgb.b = max;     
+	}else if (h >= 240 &&  h < 300){
+		rgb.r = min + (max - min) * ((h - 240) / 60);
+		rgb.g = min;
+		rgb.b = max;     
+	}else if (h >= 300 &&  h < 360){
+		rgb.r = max;
+		rgb.g = min;
+		rgb.b = min + (max - min) * ((360 - h) / 60); 
+	} 
+
+	rgb.r =  Math.round(rgb.r);
+	rgb.g =  Math.round(rgb.g);
+	rgb.b =  Math.round(rgb.b);
+	return rgb; 
+}  
+
+function RGB2bgColor(r,g,b) {
+	return (r<<16)+(g<<8)+b;
+}
+
+
 
 //mersennetwister
 var mt = new MersenneTwister();
@@ -70,7 +124,7 @@ function Arrows(col, row, J){
 	this._idx		= new Index(col, row);
 	this._arrow		= new Array(col*row);
 	this._theta		= new Array(col*row);
-	this._div		= 30; //division
+	this._div		= 100; //division
 	this._J			= J;  //interaction
 }
 
@@ -90,6 +144,8 @@ Arrows.prototype = {
 				//set spin
 				this._theta[this._idx.conv(c, r)] = mt.nextInt(0, this._div);
 				this._arrow[this._idx.conv(c, r)].rotation.set(0, 0, 2*Math.PI*this._theta[this._idx.conv(c, r)]/this._div);
+				var rgb = hsl2rgb(Math.floor(360*this._theta[this._idx.conv(c, r)]/this._div),100,50); 
+				this._arrow[this._idx.conv(c, r)].cone.material.color.set(RGB2bgColor(rgb.r,rgb.g,rgb.b));
 			}
 		}
 	},
@@ -101,16 +157,16 @@ Arrows.prototype = {
 		var tempTheta = this._theta[this._idx.conv(sel_c, sel_r)];
 
 		var prevE = -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r-1)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r+1)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c-1, sel_r)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c+1, sel_r)])/this._div));
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r+1)])/this._div))
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c-1, sel_r)])/this._div))
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c+1, sel_r)])/this._div));
 
 		tempTheta = (mt.next() < 0.5) ? mod(tempTheta+1, this._div) : mod(tempTheta-1, this._div);
 
 		var newE	 = -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r-1)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r+1)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c-1, sel_r)])/this._div))
-					   -this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c+1, sel_r)])/this._div));
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c, sel_r+1)])/this._div))
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c-1, sel_r)])/this._div))
+			-this._J*(Math.cos(2*Math.PI*(tempTheta-this._theta[this._idx.conv(sel_c+1, sel_r)])/this._div));
 
 		var dE = newE - prevE;
 
@@ -118,6 +174,8 @@ Arrows.prototype = {
 		if (dE < 0 || mt.next() < Math.exp(-invtemp*dE)){
 			this._theta[this._idx.conv(sel_c, sel_r)] = tempTheta;
 			this._arrow[this._idx.conv(sel_c, sel_r)].rotation.set(0, 0, 2*Math.PI*this._theta[this._idx.conv(sel_c, sel_r)]/this._div);
+			var rgb = hsl2rgb(Math.floor(360*this._theta[this._idx.conv(sel_c, sel_r)]/this._div),100,50); 
+			this._arrow[this._idx.conv(sel_c, sel_r)].cone.material.color.set(RGB2bgColor(rgb.r,rgb.g,rgb.b));
 		}
 	}
 };
@@ -128,22 +186,26 @@ function initObject(){
 	//col = 30, row = 30, J = 1.0
 	arrows.initialize(scene);
 
-	var invtemp = 5;
-	var interval = 10;
+	//var invtemp = 5;
+	//var interval = 10;
 
 	//MCstep
-	var timeoutCallBack = function(){
-		for(var i=0; i<10000; ++i){
-			arrows.MCstep(invtemp);
-		}
-		setTimeout(timeoutCallBack, interval);
-	}
+	//var timeoutCallBack = function(){
+	//	for(var i=0; i<10000; ++i){
+	//		arrows.MCstep(invtemp);
+	//	}
+	//	setTimeout(timeoutCallBack, interval);
+	//}
 
-	setTimeout(timeoutCallBack, interval);
+	//setTimeout(timeoutCallBack, interval);
 }
 
 function loop(){
 	window.requestAnimationFrame(loop);
+	var invtemp = document.getElementById("smp").value;
+	for(var i=0; i<10000; ++i){
+		arrows.MCstep(invtemp);
+	}
 	renderer.clear();
 	renderer.render(scene, camera);
 }
