@@ -95,7 +95,7 @@ function initCamera(){
 
 	camera.position.x = 0;
 	camera.position.y = 0;
-	camera.position.z = 1100;
+	camera.position.z = 900;
 
 	camera.up.x			= 0;
 	camera.up.y			= 1;
@@ -182,8 +182,8 @@ Arrows.prototype = {
 
 var arrows;
 function initObject(){
-	arrows = new Arrows(40, 40, 1.0);
-	//col = 40, row = 40, J = 1.0
+	arrows = new Arrows(30, 30, 1.0);
+	//col = 30, row = 30, J = 1.0
 	arrows.initialize(scene);
 
 	//var invtemp = 5;
