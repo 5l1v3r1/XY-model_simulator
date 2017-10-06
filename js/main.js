@@ -202,7 +202,7 @@ function initObject(){
 
 function loop(){
 	window.requestAnimationFrame(loop);
-	var invtemp = document.getElementById("smp").value;
+	var invtemp = 1.0/document.getElementById("smp").value;
 	for(var i=0; i<10000; ++i){
 		arrows.MCstep(invtemp);
 	}
